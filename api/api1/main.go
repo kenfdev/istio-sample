@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 type Version struct {
@@ -35,9 +35,9 @@ func main() {
 
 	http.HandleFunc("/api/db-version", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
-		connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+		connStr := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable", dbUser, dbPass, dbHost, dbPort, dbName)
 
-		db, err := sql.Open("mysql", connStr)
+		db, err := sql.Open("postgres", connStr)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -55,7 +55,7 @@ func main() {
 			if err != nil {
 				panic(err.Error())
 			}
-			version.Version = fmt.Sprintf("MySQL %s", v)
+			version.Version = fmt.Sprintf("%s", v)
 		}
 
 		// pass jaeger tracing headers

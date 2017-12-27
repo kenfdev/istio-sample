@@ -4,9 +4,14 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
-			"ImportPath": "github.com/go-sql-driver/mysql",
-			"Comment": "v1.3-50-g9181e3a",
-			"Rev": "9181e3a86a19bacd63e68d43ae8b7b36320d8092"
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-195-g83612a5",
+			"Rev": "83612a56d3dd153a94a629cd64925371c9adad78"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-195-g83612a5",
+			"Rev": "83612a56d3dd153a94a629cd64925371c9adad78"
 		}
 	]
 }
