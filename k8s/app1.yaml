@@ -1,0 +1,265 @@
+##################################################################################################
+# app1 service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1
+  labels:
+    app: app1
+spec:
+  ports:
+  - port: 9080
+    targetPort: 80
+    name: http
+  selector:
+    app: app1
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: app1-v1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app1
+        version: v1
+    spec:
+      containers:
+      - name: app1
+        image: kenfdev/istio-sample-app1:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: app1-v2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app1
+        version: v2
+    spec:
+      containers:
+      - name: app1
+        image: kenfdev/istio-sample-app1:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+---
+##################################################################################################
+# api1 service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: api1
+  labels:
+    app: api1
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: api1
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: api1-v1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api1
+        version: v1
+    spec:
+      containers:
+      - name: api1
+        image: kenfdev/istio-sample-api1:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+          - name: SERVER_PORT
+            value: "8080"
+          - name: DB_HOST
+            value: mysqldb
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_NAME
+            value: my_database
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: password
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: api1-v2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: api1
+        version: v2
+    spec:
+      containers:
+      - name: api1
+        image: kenfdev/istio-sample-api1:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+          - name: SERVER_PORT
+            value: "8080"
+          - name: DB_HOST
+            value: postgresdb
+          - name: DB_PORT
+            value: "5432"
+          - name: DB_NAME
+            value: my_database
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: password
+---
+###########################################################################
+# Database
+##########################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb
+  labels:
+    app: mysqldb
+spec:
+  ports:
+  - port: 3306
+    name: mysql
+  selector:
+    app: mysqldb
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mysqldb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysqldb
+    spec:
+      containers:
+      - name: mysqldb
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+          - name: MYSQL_DATABASE
+            value: my_database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: password
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: rootpassword
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresdb
+  labels:
+    app: postgresdb
+spec:
+  ports:
+  - port: 5432
+    name: postgres
+  selector:
+    app: postgresdb
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: postgresdb
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgresdb
+    spec:
+      containers:
+      - name: postgresdb
+        image: postgres:10-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+          - name: POSTGRES_DB
+            value: my_database
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: user
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: password
+---
+###########################################################################
+# Ingress resource (gateway)
+##########################################################################
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gateway
+  annotations:
+    kubernetes.io/ingress.class: "istio"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/.*
+        backend:
+          serviceName: api1
+          servicePort: 8080
+      - path: /.*
+        backend:
+          serviceName: app1
+          servicePort: 9080
+---

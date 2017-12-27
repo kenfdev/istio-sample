@@ -1,0 +1,74 @@
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: ingress-app1-default
+spec:
+  destination:
+    name: app1
+  precedence: 1
+  route:
+  - labels:
+      version: v1
+---
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: ingress-api1-default
+spec:
+  destination:
+    name: api1
+  precedence: 1
+  route:
+  - labels:
+      version: v1
+---
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: ingress-app1-firefox
+spec:
+  destination:
+    name: app1
+  match:
+    request:
+      headers:
+        user-agent:
+          regex: ".*Firefox.*"
+  precedence: 2
+  route:
+  - labels:
+      version: v2
+---
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: ingress-api1-firefox
+spec:
+  destination:
+    name: api1
+  match:
+    request:
+      headers:
+        user-agent:
+          regex: ".*Firefox.*"
+  precedence: 2
+  route:
+  - labels:
+      version: v2
+---
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: ingress-app1-iphone
+spec:
+  destination:
+    name: app1
+  match:
+    request:
+      headers:
+        user-agent:
+          regex: ".*iPhone.*"
+  precedence: 3
+  route:
+  - labels:
+      version: v2
