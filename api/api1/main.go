@@ -23,6 +23,16 @@ func main() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
+	incomingHeaders := []string{
+		"x-request-id",
+		"x-b3-traceid",
+		"x-b3-spanid",
+		"x-b3-parentspanid",
+		"x-b3-sampled",
+		"x-b3-flags",
+		"x-ot-span-context",
+	}
+
 	http.HandleFunc("/api/db-version", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
 		connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
@@ -46,6 +56,11 @@ func main() {
 				panic(err.Error())
 			}
 			version.Version = fmt.Sprintf("MySQL %s", v)
+		}
+
+		// pass jaeger tracing headers
+		for _, h := range incomingHeaders {
+			w.Header().Set(h, r.Header.Get(h))
 		}
 
 		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
