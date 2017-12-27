@@ -24,6 +24,7 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 
 	http.HandleFunc("/api/db-version", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
 		connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 
 		db, err := sql.Open("mysql", connStr)
@@ -55,5 +56,6 @@ func main() {
 		}
 	})
 
+	log.Printf("Listening on %s", serverAddr)
 	log.Fatal(http.ListenAndServe(serverAddr, nil))
 }
