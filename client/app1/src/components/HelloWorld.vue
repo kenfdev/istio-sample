@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>Welcome to Your Vue.js App <span style="color: red">Ver. 1</span></h1>
+    <h1>Welcome to Your Vue.js App <span style="color: red">Ver. 2</span></h1>
     <p>This data was fetched from: <span style="color: red">{{ dbVersion }}</span></p>
   </div>
 </template>
