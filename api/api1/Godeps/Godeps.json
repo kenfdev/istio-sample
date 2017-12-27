@@ -1,0 +1,12 @@
+{
+	"ImportPath": "github.com/kenfdev/istio-sample/api/api1",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.3-50-g9181e3a",
+			"Rev": "9181e3a86a19bacd63e68d43ae8b7b36320d8092"
+		}
+	]
+}

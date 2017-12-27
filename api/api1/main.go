@@ -1,0 +1,59 @@
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+type Version struct {
+	Version string `json:"version"`
+}
+
+func main() {
+	serverAddr := fmt.Sprintf(":%s", os.Getenv("SERVER_PORT"))
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	http.HandleFunc("/api/db-version", func(w http.ResponseWriter, r *http.Request) {
+		connStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+
+		db, err := sql.Open("mysql", connStr)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer db.Close()
+
+		rows, err := db.Query("SELECT VERSION()") //
+		if err != nil {
+			panic(err.Error())
+		}
+
+		var version = &Version{}
+		for rows.Next() {
+			var v string
+			err = rows.Scan(&v)
+			if err != nil {
+				panic(err.Error())
+			}
+			version.Version = fmt.Sprintf("MySQL %s", v)
+		}
+
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+
+		if err := json.NewEncoder(w).Encode(version); err != nil {
+			panic(err)
+		}
+	})
+
+	log.Fatal(http.ListenAndServe(serverAddr, nil))
+}
